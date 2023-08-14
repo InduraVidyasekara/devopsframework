@@ -1,0 +1,82 @@
+---
+- name: Install Jenkins on Red Hat EC2 instances
+  hosts: jenkins_servers
+  become: yes
+  vars:
+    jenkins_port: 8080
+    jenkins_version: "2.401.2-1.1" 
+
+  tasks:
+    - name: Update package cache
+      dnf:
+        name: dnf
+        state: latest
+        update_cache: yes
+
+    - name: Install OpenJDK
+      dnf:
+        name: java-11-openjdk
+        state: present
+
+    - name: Add Jenkins GPG key
+      rpm_key:
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+        state: present
+
+    - name: Add Jenkins repository
+      yum_repository:
+        name: jenkins
+        description: Jenkins
+        baseurl: https://pkg.jenkins.io/redhat-stable
+        gpgcheck: yes
+        gpgkey: https://pkg.jenkins.io/redhat/jenkins.io.key
+        enabled: yes
+
+    - name: Download Jenkins RPM package
+      get_url:
+        url: https://mirrors.jenkins.io/redhat-stable/jenkins-{{jenkins_version}}.noarch.rpm
+        dest: /tmp/jenkins.rpm
+        mode: '0644'
+
+    - name: Install Jenkins using rpm
+      yum:
+        name: /tmp/jenkins.rpm
+        state: present
+
+    - name: Start Jenkins service
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
+    
+    - name: Install Firewalld
+      yum:
+        name: firewalld
+        state: present
+
+    - name: Start and enable Firewalld service
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Allow incoming traffic on port 8080
+      firewalld:
+        port: 8080/tcp
+        permanent: yes
+        immediate: yes
+        state: enabled
+
+    - name: Get Jenkins initial admin password
+      slurp:
+        src: /var/lib/jenkins/secrets/initialAdminPassword
+      register: jenkins_password
+
+    - name: Display Jenkins initial admin password
+      debug:
+        msg: "Jenkins initial admin password: {{ jenkins_password.content | b64decode }}"
+
+    - name: Package Zipping for offline Installation
+      archive:
+        path: /path/to/source_directory
+        dest: /tmp/archive.zip
