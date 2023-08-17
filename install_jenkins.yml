@@ -75,8 +75,3 @@
     - name: Display Jenkins initial admin password
       debug:
         msg: "Jenkins initial admin password: {{ jenkins_password.content | b64decode }}"
-
-    - name: Package Zipping for offline Installation
-      archive:
-        path: /path/to/source_directory
-        dest: /tmp/archive.zip
