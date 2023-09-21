@@ -1,0 +1,16 @@
+server.host: "0.0.0.0"
+server.name: "dr-k8s-mgt-pr01.kbprasac.com.kh"
+server.port: 5601
+elasticsearch.hosts: ["https://dr-k8s-els-pr01.kbprasac.com.kh:9200", "https://dr-k8s-els-pr02.kbprasac.com.kh:9200", "https://dr-k8s-els-pr03.kbprasac.com.kh:9200"]
+elasticsearch.username: "elastic"
+elasticsearch.password: "RYLWSiFqpQGTaYr4INZF"
+#elasticsearch.ssl.certificateAuthorities: ["/etc/kibana/certs/http_ca.crt"]
+elasticsearch.ssl.verificationMode: none
+monitoring.ui.ccs.enabled: false
+server.publicBaseUrl: http://dr-k8s-mgt-pr01.kbprasac.com.kh:5601
+#elasticsearch.serviceAccountToken: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYXRva2VuOklqOVNmb1NKU1ZPeThKc1FESGh5dWc"
+
+
+#server.ssl.enabled: true
+#server.ssl.certificate: /etc/ssl/certs/kbprasac.com.kh-kibana.crt
+#server.ssl.key: /etc/ssl/certs/kbprasac.com.kh-kibana.key

@@ -1,0 +1,50 @@
+---
+- name: Install Blackbox Exporter on Red Hat
+  hosts: jenkins_servers
+  become: yes
+  vars:
+    blackbox_version: "latest"
+
+  tasks:
+    - name: Install required packages
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - curl
+        - tar
+      become: yes
+
+    - name: Download Blackbox Exporter
+      get_url:
+        url: "https://github.com/prometheus/blackbox_exporter/releases/download/{{ blackbox_version }}/blackbox_exporter-{{ blackbox_version }}.linux-amd64.tar.gz"
+        dest: "/tmp/blackbox_exporter.tar.gz"
+        mode: '0644'
+      become: yes
+
+    - name: Extract Blackbox Exporter
+      unarchive:
+        src: "/tmp/blackbox_exporter.tar.gz"
+        dest: "/opt"
+        extra_opts: [--strip-components=1]
+      become: yes
+
+    - name: Create a systemd service
+      template:
+        src: templates/blackbox_exporter.service.j2
+        dest: /etc/systemd/system/blackbox_exporter.service
+      notify: Reload systemd
+      become: yes
+
+    - name: Start and enable the Blackbox Exporter service
+      systemd:
+        name: blackbox_exporter
+        state: started
+        enabled: yes
+      become: yes
+
+  handlers:
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+      become: yes

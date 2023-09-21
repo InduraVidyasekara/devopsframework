@@ -1,0 +1,99 @@
+
+PLAY [Gather server facts] *****************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [Master-2]
+ok: [Master-3]
+ok: [Worker-1]
+ok: [Worker-2]
+ok: [Master-1]
+ok: [Worker-5]
+ok: [Worker-3]
+ok: [Worker-4]
+ok: [Kibana]
+ok: [ES-1]
+ok: [ES-2]
+ok: [Logstash-2]
+ok: [Logstash-1]
+ok: [nexus-server]
+ok: [haproxy-ingress-01]
+ok: [haproxy-ingress-02]
+ok: [ES-3]
+ok: [Jump-host]
+
+TASK [Display server facts] ****************************************************
+ok: [Master-1] => {
+    "msg": "Hostname: dr-k8s-mas-pr01, CPU Cores: 6, Memory: 7665 MB, Available disk space: 102350 MB, /data: 307046 MB"
+}
+ok: [Master-2] => {
+    "msg": "Hostname: dr-k8s-mas-pr02, CPU Cores: 6, Memory: 7665 MB, Available disk space: 102350 MB, /data: 307046 MB"
+}
+ok: [Master-3] => {
+    "msg": "Hostname: DR-K8S-MAS-PR03, CPU Cores: 6, Memory: 7665 MB, Available disk space: 102350 MB, /data: 307046 MB"
+}
+ok: [Worker-2] => {
+    "msg": "Hostname: DR-K8S-WOR-PR02, CPU Cores: 8, Memory: 23793 MB, Available disk space: 102350 MB"
+}
+ok: [Worker-4] => {
+    "msg": "Hostname: DR-K8S-WOR-PR04, CPU Cores: 8, Memory: 23793 MB, Available disk space: 102350 MB"
+}
+ok: [Worker-1] => {
+    "msg": "Hostname: DR-K8S-WOR-PR01, CPU Cores: 8, Memory: 23793 MB, Available disk space: 102350 MB"
+}
+ok: [Worker-3] => {
+    "msg": "Hostname: DR-K8S-WOR-PR03, CPU Cores: 8, Memory: 23793 MB, Available disk space: 102350 MB"
+}
+ok: [Worker-5] => {
+    "msg": "Hostname: DR-K8S-WOR-PR05, CPU Cores: 8, Memory: 23793 MB, Available disk space: 102350 MB"
+}
+ok: [Logstash-1] => {
+    "msg": "Hostname: dr-k8s-log-pr01, CPU Cores: 8, Memory: 9681 MB, Available disk space: 102350 MB, /data: 153521 MB"
+}
+ok: [Kibana] => {
+    "msg": "Hostname: DR-K8S-MGT-PR01, CPU Cores: 8, Memory: 9681 MB, Available disk space: 102350 MB, /data: 153521 MB"
+}
+ok: [Logstash-2] => {
+    "msg": "Hostname: DR-K8S-LOG-PR02, CPU Cores: 8, Memory: 9681 MB, Available disk space: 102350 MB, /data: 153521 MB"
+}
+ok: [ES-2] => {
+    "msg": "Hostname: DR-K8S-ELS-PR02, CPU Cores: 8, Memory: 11697 MB, Available disk space: 102350 MB, /data: 511746 MB"
+}
+ok: [ES-1] => {
+    "msg": "Hostname: dr-k8s-els-pr01, CPU Cores: 8, Memory: 11697 MB, Available disk space: 102350 MB, /data: 511746 MB"
+}
+ok: [ES-3] => {
+    "msg": "Hostname: DR-K8S-ELS-PR03, CPU Cores: 8, Memory: 11697 MB, Available disk space: 102350 MB"
+}
+ok: [haproxy-ingress-01] => {
+    "msg": "Hostname: DR-K8S-PXY-PR01, CPU Cores: 6, Memory: 7665 MB, Available disk space: 102350 MB, /data: 153521 MB"
+}
+ok: [haproxy-ingress-02] => {
+    "msg": "Hostname: DR-K8S-PXY-PR02, CPU Cores: 6, Memory: 7665 MB, Available disk space: 102350 MB, /data: 153521 MB"
+}
+ok: [nexus-server] => {
+    "msg": "Hostname: dr-k8s-nex-pr01, CPU Cores: 4, Memory: 11697 MB, Available disk space: 102350 MB, /data: 307046 MB"
+}
+ok: [Jump-host] => {
+    "msg": "Hostname: DR-K8S-JPH-PR01, CPU Cores: 4, Memory: 7665 MB, Available disk space: 102350 MB, /data: 358221 MB"
+}
+
+PLAY RECAP *********************************************************************
+ES-1                       : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+ES-2                       : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+ES-3                       : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Jump-host                  : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Kibana                     : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Logstash-1                 : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Logstash-2                 : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Master-1                   : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Master-2                   : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Master-3                   : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Worker-1                   : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Worker-2                   : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Worker-3                   : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Worker-4                   : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+Worker-5                   : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+haproxy-ingress-01         : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+haproxy-ingress-02         : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+nexus-server               : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+

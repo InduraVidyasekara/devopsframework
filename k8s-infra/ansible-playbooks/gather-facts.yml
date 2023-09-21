@@ -1,0 +1,9 @@
+---
+- name: Gather server facts
+  hosts: all
+  gather_facts: yes
+
+  tasks:
+    - name: Display server facts
+      debug:
+        msg: "Hostname: {{ ansible_hostname }}, CPU Cores: {{ ansible_processor_vcpus }}, Memory: {{ ansible_memtotal_mb }} MB, Available disk space: {% for item in ansible_mounts %}{% if item.mount == '/' %}{{ (item.size_total / 1024 / 1024) | int }} MB{% endif %}{% if item.mount == '/data' %}, /data: {{ (item.size_total / 1024 / 1024) | int }} MB{% endif %}{% if item.mount == '/application' %}, /application: {{ (item.size_total / 1024 / 1024) | int }} MB{% endif %}{% if item.mount == '/var' %}, /var: {{ (item.size_total / 1024 / 1024) | int }} MB{% endif %}{% endfor %}"

@@ -1,0 +1,45 @@
+---
+- name: Setup Elastic Search
+  hosts: elastic
+  become: yes
+
+  tasks:
+    - name: Install required packages
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - java-1.8.0-openjdk-devel
+        - wget
+
+    - name: Add Elastic respository
+      shell: sudo rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      become: yes
+
+    - name: Create elasticsearch.repo file
+      copy:
+        dest: /etc/yum.repos.d/elasticsearch.repo
+        owner: root
+        group: root
+        mode: 0644
+        content: |
+          [elasticsearch]
+          name=Elasticsearch repository for 8.x packages
+          baseurl=https://artifacts.elastic.co/packages/8.x/yum
+          gpgcheck=1 
+          gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+          enabled=0
+          autorefresh=1
+          type=rpm-md
+
+    - name: Install Elasticsearch
+      yum:
+        name: elasticsearch
+        state: present
+        enablerepo: elasticsearch
+
+    - name: Start Elasticsearch
+      service:
+        name: elasticsearch
+        state: started
+        enabled: yes

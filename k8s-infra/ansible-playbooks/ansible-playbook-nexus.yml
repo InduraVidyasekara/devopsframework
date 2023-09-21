@@ -1,0 +1,61 @@
+---
+- hosts: nexus
+  become: true
+  tasks:
+    - name: Install Java
+      yum:
+        name: java-1.8.0-openjdk
+        state: present
+
+    - name: Download Nexus
+      get_url:
+        url: "https://download.sonatype.com/nexus/3/latest-unix.tar.gz"
+        dest: "/tmp/nexus.tar.gz"
+
+    - name: Extract Nexus
+      unarchive:
+        src: "/tmp/nexus.tar.gz"
+        dest: "/data/"
+        owner: mitrai
+        remote_src: yes
+
+    - name: Rename Nexus Directory
+      command: mv /data/nexus-3.58.1-02 /data/nexus
+   
+   
+    - name: Change nexus folder permission
+      file:
+        path: /data/nexus
+        state: directory
+        recurse: yes
+        owner: mitrai
+        mode: '0755'
+
+    - name: Change sonartype folder permission
+      file:
+        path: /data/sonatype-work
+        state: directory
+        recurse: yes
+        owner: mitrai
+        mode: '0755'
+
+
+    - name: Configure Nexus Port
+      lineinfile:
+        dest: "/data/nexus/bin/nexus.rc"
+        regexp: '^run_as_user='
+        line: 'run_as_user=mitrai'
+
+    - name: Add Nexus as a System Service
+      template:
+        src: ./nexus/nexus.service.j2
+        dest: /etc/systemd/system/nexus.service
+      notify:
+        - Start Nexus Service
+
+  handlers:
+    - name: Start Nexus Service
+      systemd:
+        name: nexus
+        state: started
+        enabled: yes

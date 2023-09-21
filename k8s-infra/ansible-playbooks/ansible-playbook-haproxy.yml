@@ -1,0 +1,27 @@
+---
+- name: Install and configure HAProxy
+  hosts: haproxy
+  become: true
+
+  tasks:
+    - name: Update yum cache
+      yum:
+        name: '*'
+        state: latest
+      become: true
+
+    - name: Install HAProxy
+      yum:
+        name: haproxy
+        state: present
+      become: true
+
+
+
+    - name: Enable and start HAProxy service
+      systemd:
+        name: haproxy
+        state: started
+        enabled: true
+
+

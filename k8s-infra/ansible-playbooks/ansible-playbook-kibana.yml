@@ -1,0 +1,37 @@
+- name: Install Kibana
+  hosts: kibana
+  become: true
+
+  tasks:
+    - name: Import Elastic GPG Key
+      rpm_key:
+        key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        state: present
+
+    - name: Add Kibana Repository
+      yum_repository:
+        name: kibana
+        description: Kibana Repository
+        baseurl: https://artifacts.elastic.co/packages/8.x/yum
+        gpgcheck: yes
+        gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        enabled: yes
+
+    - name: Install Kibana
+      yum:
+        name: kibana
+        state: present
+
+    - name: Configure Kibana
+      template:
+        src: ./kibana/kibana.yml.j2
+        dest: /etc/kibana/kibana.yml
+        owner: kibana
+        group: kibana
+        mode: '0644'
+
+    - name: Start Kibana service
+      systemd:
+        name: kibana
+        state: started
+        enabled: yes
