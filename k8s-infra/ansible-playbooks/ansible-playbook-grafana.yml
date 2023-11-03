@@ -1,25 +1,22 @@
 ---
 - name: Deploy Grafana
-  hosts: kibana
+  hosts: grafana
   become: true
 
   tasks:
-    - name: Install dependencies
-      package:
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - curl
-        - gnupg2
-
-    - name: Add Grafana repository
-      yum_repository:
-        name: grafana
-        description: Grafana Repository
-        baseurl: https://packages.grafana.com/oss/rpm
-        gpgcheck: yes
-        gpgkey: https://packages.grafana.com/gpg.key
-        enabled: yes
+    - name: Creating a file with content
+      copy:
+        dest: "/etc/yum.repos.d/grafana.repo"
+        content: |
+          [grafana]
+          name=grafana
+          baseurl=https://packages.grafana.com/oss/rpm
+          repo_gpgcheck=1
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://packages.grafana.com/gpg.key
+          sslverify=1
+          sslcacert=/etc/pki/tls/certs/ca-bundle.crt
 
     - name: Install Grafana
       package:
@@ -31,4 +28,3 @@
         name: grafana-server
         state: started
         enabled: yes
-
