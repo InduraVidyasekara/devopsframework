@@ -1,0 +1,36 @@
+---
+- name: Install and configure NFS
+  hosts: nfs_server
+  become: yes
+
+  tasks:
+    - name: Install NFS packages
+      package:
+        name:
+          - nfs-utils
+          - nfs-utils-lib
+
+    - name: Ensure NFS service is running and enabled
+      systemd:
+        name: nfs
+        state: started
+        enabled: yes
+
+    - name: Create NFS export directory
+      file:
+        path: /exports
+        state: directory
+
+    - name: Configure NFS exports
+      lineinfile:
+        path: /etc/exports
+        line: "/var/nfs_shared *(rw,sync,no_root_squash,no_all_squash)"
+
+    - name: Reload NFS configuration
+      command: exportfs -ra
+
+  handlers:
+    - name: Restart NFS service
+      systemd:
+        name: nfs
+        state: restarted

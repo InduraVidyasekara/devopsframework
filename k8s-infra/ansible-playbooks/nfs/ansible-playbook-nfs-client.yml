@@ -1,0 +1,32 @@
+---
+- name: Configure NFS client
+  hosts: nfs_clients
+  become: yes
+
+  tasks:
+    - name: Install NFS packages
+      package:
+        name:
+          - nfs-utils
+
+    - name: Ensure NFS client service is running and enabled
+      systemd:
+        name: nfs-client
+        state: started
+        enabled: yes
+
+    - name: Create mount point directory
+      file:
+        path: /mnt/nfs
+        state: directory
+
+    - name: Mount NFS share
+      mount:
+        path: /mnt/nfs
+        src: "{{ nfs_server }}:/exports"
+        fstype: nfs
+        opts: "rw,vers=3,proto=tcp"
+        state: mounted
+
+  vars:
+    nfs_server: "nfs-server-hostname"
