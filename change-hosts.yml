@@ -1,40 +1,37 @@
 ---
 - name: Update /etc/hosts
-  hosts: target_servers
+  hosts: all
   become: yes
   tasks:
-    - name: Update hosts file
+    - name: Update hosts file for K8s master
       lineinfile:
         path: /etc/hosts
         line: "{{ item }}"
       with_items:
-        - "10.0.92.30   SRV-WSO2-TEST-DEVQA-CONTROLPLANE01"
-        - "10.0.92.31   SRV-WSO2-TEST-DEVQA-CONTROLPLANE02"
-        - "10.0.92.27   dev-db01 dev-db01.local"
-        - "10.0.92.28   dev-db02 dev-db02.local"
-        - "10.0.92.29   dev-db03 dev-db03.local"
-        - "127.0.0.1    localhost localhost.localdomain"
+        - "192.168.122.61 k8s-master-internal.local"
 
-    - name: Update hosts file
+    - name: Update hosts file for K8s workers
       lineinfile:
         path: /etc/hosts
         line: "{{ item }}"
       with_items:
-        - "10.0.92.30   SRV-WSO2-TEST-DEVQA-CONTROLPLANE01"
-        - "10.0.92.31   SRV-WSO2-TEST-DEVQA-CONTROLPLANE02"
-        - "10.0.92.27   dev-db01 dev-db01.local"
-        - "10.0.92.28   dev-db02 dev-db02.local"
-        - "10.0.92.29   dev-db03 dev-db03.local"
-        - "127.0.0.1    localhost localhost.localdomain"
-        
-    - name: Update hosts file
+        - "192.168.122.63 k8s-worker-1-internal.local"
+        - "192.168.122.64 k8s-worker-2-internal.local"
+
+    - name: Update hosts file for monitoring servers
       lineinfile:
         path: /etc/hosts
         line: "{{ item }}"
       with_items:
-        - "10.0.92.30   SRV-WSO2-TEST-DEVQA-CONTROLPLANE01"
-        - "10.0.92.31   SRV-WSO2-TEST-DEVQA-CONTROLPLANE02"
-        - "10.0.92.27   dev-db01 dev-db01.local"
-        - "10.0.92.28   dev-db02 dev-db02.local"
-        - "10.0.92.29   dev-db03 dev-db03.local"
-        - "127.0.0.1    localhost localhost.localdomain"
+        - "192.168.122.65 grafana-kibana-internal.local"
+        - "192.168.122.66 elasticsearch-logstash-internal.local"
+
+    - name: Update hosts file for artifact repository server
+      lineinfile:
+        path: /etc/hosts
+        line: "192.168.122.67 nexus-internal.local"
+
+    - name: Update hosts file for jumphost server
+      lineinfile:
+        path: /etc/hosts
+        line: "192.168.122.68 jumphost-internal.local"
