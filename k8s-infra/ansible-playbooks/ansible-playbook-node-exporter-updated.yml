@@ -1,5 +1,5 @@
 ---
-- hosts: nexus
+- hosts: all
   become: yes
   tasks:
 
