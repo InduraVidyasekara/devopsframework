@@ -1,6 +1,6 @@
 ---
 - name: Setup Elastic Search
-  hosts: elastic
+  hosts: monitoring-elastic
   become: yes
 
   tasks:

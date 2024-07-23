@@ -1,5 +1,5 @@
 ---
-- hosts: nexus
+- hosts: artifact_repository
   become: true
   tasks:
     - name: Install Java

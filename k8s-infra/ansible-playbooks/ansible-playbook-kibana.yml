@@ -1,5 +1,5 @@
 - name: Install Kibana
-  hosts: kibana
+  hosts: monitoring-grafana
   become: true
 
   tasks:
