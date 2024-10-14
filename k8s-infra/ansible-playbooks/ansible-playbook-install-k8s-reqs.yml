@@ -1,0 +1,13 @@
+---
+- name: Install packages on RHEL 9
+  hosts: master, workers
+  become: yes
+  tasks:
+    - name: Ensure required packages are installed
+      yum:
+        name:
+          - socat
+          - conntrack
+          - ebtables
+          - ipset
+        state: present

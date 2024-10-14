@@ -1,0 +1,52 @@
+# dd-web-api pods settings.
+webApi:
+  # Endpoint description
+  # See https://kubernetes.io/docs/concepts/services-networking/service/ for more details.
+  service:
+    type: LoadBalancer
+    #nodePort: 31005
+
+# Log4Net settings
+log4Net:
+  # Graylog connection parameters (optional).
+  grayLog:
+    level: ERROR
+
+# Multi deployments global parameters
+global:
+  # Elastic search connection parameters
+  elasticsearch:
+    protocol: http
+    host: 192.168.102.22
+    port: 9200
+    path: /
+    user: 
+    password: 
+
+  # RabbitMQ connection parameters
+  rabbitmq:
+    host: 10.233.3.108
+    vhost: /
+    port: 5672
+    user: rabbitmq
+    password: rabbitmq
+
+  # Redis server connection parameters
+  redis:
+    host: 10.233.53.98
+    port: 6379
+    database: 2
+
+  # Deduplication database connection parameters
+  mongodb:
+    host: 192.168.102.25
+    port: 27017
+    user: 
+    password: 
+
+# Mongodb deployment settings
+# For more details see https://github.com/helm/charts/blob/master/stable/mongodb/values.yaml
+mongodb:
+  enabled: false
+  fullnameOverride: mongodb
+  usePassword: false

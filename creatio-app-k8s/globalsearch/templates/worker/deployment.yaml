@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels:
+    app: {{ .Release.Name }}-worker
+    chart: {{ template "gs.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+{{- with .Values.worker.strategy }}
+  strategy:
+{{ toYaml . | indent 4  }}
+{{ end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-worker
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        timestamp: {{ now | quote }}
+      labels:
+        app: {{ .Release.Name }}-worker
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: log4net-file
+          configMap:
+            name: {{ .Release.Name }}-logging-configmap
+            items:
+              - key: log4net.config
+                path: log4net.config
+{{ if .Values.worker.nodeName }}
+      nodeName: {{ .Values.worker.nodeName }}
+{{- end }}
+{{ if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{ toYaml .Values.image.pullSecrets | indent 8 }}
+{{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: log4net-file
+              mountPath: {{ .Values.log4Net.mountPath }}
+
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+
+          env:
+            - name: RabbitMQSettings__RabbitQueueName
+              value: {{ .Values.global.rabbitmq.qname.inbox }}
+            - name: RabbitMQSettings__QueuePriorityEnable
+              value: '{{ .Values.global.rabbitmq.queuePriorityEnable }}'
+            - name: RabbitMQSettings__ReplyRabbitQueueName
+              value: {{ .Values.global.rabbitmq.qname.outbox }}
+            - name: IndexingContentLength
+              value: "{{ .Values.global.indexingContentLength | int64  }}"
+            - name: RequestTimeOut
+              value: "{{ .Values.global.requestTimeOut | int64 }}"
+            - name: IndexingCommandTimeout
+              value: "{{ .Values.worker.env.indexingCommandTimeout | int64 }}"
+            - name: RabbitMQSettings__IncrementDays
+              value: "{{ .Values.global.incrementDays | int64 }}"
+            - name: connectionStrings__RabbitMQ
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: rabbitmqConnectionString
+            - name: elasticLogin
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: elasticsearchUser
+            - name: elasticPassword
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: elasticsearchPassword
+            - name: OnSiteClientSettings__ElasticSearchUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-global-config-map
+                  key: es.url
+            - name: TraceDebugInfo
+              value: "{{ .Values.global.elasticsearch.traceDebugInfo }}"
+            - name: Log4NetPath
+              value: {{ .Values.log4Net.mountPath }}/log4net.config
+{{ if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+{{- end }}
+{{ if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+{{- end }}
+          resources:
+{{ toYaml .Values.worker.resources | indent 12 }}
+    {{- with .Values.worker.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.worker.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.worker.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

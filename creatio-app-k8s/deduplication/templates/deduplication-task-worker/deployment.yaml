@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deduplication-task-worker
+  labels:
+    app: {{ .Release.Name }}-deduplication-task-worker
+    chart: {{ template "deduplication.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.deduplicationTaskWorker.replicaCount }}
+{{- with .Values.deduplicationTaskWorker.strategy }}
+  strategy:
+{{ toYaml . | indent 4  }}
+{{ end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-deduplication-task-worker
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Release.Name }}-deduplication-task-worker
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: log4net-file
+          configMap:
+            name: {{ .Release.Name }}-logging-configmap
+            items:
+              - key: log4net.config
+                path: log4net.config
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.deduplicationTaskWorker.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.deduplicationTaskWorker.image.pullPolicy }}
+          volumeMounts:
+            - name: log4net-file
+              mountPath: {{ .Values.log4Net.mountPath }}
+          env:
+            - name: RabbitConfiguration__RabbitMQUri
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-deduplication-secrets
+                  key: rabbitmqConnectionString
+            - name: RabbitConfiguration__QueueName
+              value: {{ .Values.deduplicationTaskWorker.rabbitmq.startDeduplicationTaskQueueName }}
+            - name: RabbitConfiguration__ConnectAttempts
+              value: {{ .Values.global.rabbitmq.connectAttempts | quote }}
+            - name: RabbitConfiguration__ReconnectInterval
+              value: {{ .Values.global.rabbitmq.reconnectInterval }}
+            - name: RabbitConfiguration__NetworkRecoveryInterval
+              value: {{ .Values.global.rabbitmq.networkRecoveryInterval }}
+            - name: DataServiceRestConfiguration__DataServiceUri
+              valueFrom: 
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-global-config-map
+                  key: dataServiceInternalUrl
+            - name: SearchPreparationElasticConfiguration__ElasticUri
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-deduplication-secrets
+                  key: elasticsearchUri
+            - name: SearchPreparationElasticConfiguration__ScrollBatchSize
+              value: {{ .Values.global.scrollBatchSize | quote }}
+            - name: SearchPreparationElasticConfiguration__ScrollTimeout
+              value: {{ .Values.global.scrollTimeout | quote }}
+            - name: SearchPublisherConfiguration__QueueName
+              value: {{ .Values.deduplicationTaskWorker.rabbitmq.searchQueueName }}
+            - name: SearchPreparationPublisherConfiguration__QueueName
+              value: {{ .Values.deduplicationTaskWorker.rabbitmq.searchPreparationQueueName }}
+            - name: Logger4NetConfiguration__LoggerName
+              value: {{ .Values.log4Net.loggerName }}
+            - name: Logger4NetConfiguration__LoggerRepositoryName
+              value: {{ .Values.log4Net.repositoryName }}
+            - name: Logger4NetConfiguration__LogFilePath
+              value: {{ .Values.log4Net.filePath }}
+          resources:
+{{ toYaml .Values.deduplicationTaskWorker.resources | indent 12 }}
+    {{- with .Values.deduplicationTaskWorker.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.deduplicationTaskWorker.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.deduplicationTaskWorker.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

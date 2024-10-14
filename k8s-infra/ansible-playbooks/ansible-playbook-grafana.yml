@@ -1,6 +1,6 @@
 ---
 - name: Deploy Grafana
-  hosts: kibana
+  hosts: monitoring-grafana
   become: true
 
   tasks:

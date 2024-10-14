@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-service
+  labels:
+    app: app-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-service
+  template:
+    metadata:
+      labels:
+        app: app-service
+    spec:
+      containers:
+      - name: app-service
+        image: nexus-uat.idlc.com:8082/docker-test/app-service:latest
+        ports:
+        - containerPort: 5000

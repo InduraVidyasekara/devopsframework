@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-secret
+  namespace: mongo
+type: Opaque
+data:
+  MONGO_INITDB_ROOT_USERNAME: bW9uZ28=  # base64 for 'mongo'
+  MONGO_INITDB_ROOT_PASSWORD: bW9uZ28=  # base64 for 'mongo'
+
+---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: mongodb-pvc
+#   namespace: mongo
+
+#   labels:
+#     app: mongodb
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 10Gi
+
+# ---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: mongo
+
+  labels:
+    app: mongodb
+spec:
+  serviceName: "mongodb"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: 192.168.108.165:8084/creatio-k8s-repo/mongodb:latest
+        ports:
+        - containerPort: 27017
+          name: mongodb
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_INITDB_ROOT_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_INITDB_ROOT_PASSWORD
+        volumeMounts:
+        - name: mongodb-storage
+          mountPath: /data/db
+        
+      volumes:
+      - name: mongodb-storage
+        persistentVolumeClaim:
+          claimName: mongo-pvc
+      
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  namespace: mongo
+
+  labels:
+    app: mongodb
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  selector:
+    app: mongodb
+  type: LoadBalancer

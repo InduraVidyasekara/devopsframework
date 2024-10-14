@@ -1,0 +1,430 @@
+# Global search images settings.
+image:
+  tag: 5.0.24
+  pullPolicy: IfNotPresent
+
+# gs-web-api pods settings.
+webApi:
+  # Pods count.
+  replicaCount: 2
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: RollingUpdate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-web-api
+  # Pods resources requirements.
+  resources:
+    requests:
+      memory: 120Mi
+      cpu: 20m
+    limits:
+      memory: 250Mi
+      cpu: 100m
+  # Endpoint description
+  # See https://kubernetes.io/docs/concepts/services-networking/service/ for more details.
+  service:
+    type: ClusterIP
+    port: 80
+    externalTrafficPolicy: Cluster
+    nodePort: ''
+  # Ingress endpoint settings (optional)
+  # See https://kubernetes.io/docs/concepts/services-networking/ingress/ for more details.
+  ingress:
+    enabled: false
+    host: web-api.onsite.com
+    path: /
+    pathType: Prefix
+    className: nginx
+    annotations:
+      ingress.kubernetes.io/ssl-redirect: "false"
+      ingress.kubernetes.io/rewrite-target: /
+  # pod environment values
+  env:
+    # Ignored indexing entities list. Not available entities in global search.
+    ignoredEntities: UsrVwEmployee,UsrVwEmployeeFile,VwSysProcessLog,SysPrcHistoryLog,ActivityFile,MLModel,MLModelFile,SysSettings,VwWebServiceV2,Activity,UsrVwEmailActivity,CyclicTasks,CallCdr,CallCdrFile
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  workerThreads: 25
+  completionPortThreads: 25
+
+# gs-web-indexing-service pods settings.
+webIndexingService:
+  # Pods count.
+  replicaCount: 2
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: RollingUpdate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-web-indexing-service
+  # Endpoint description
+  # See https://kubernetes.io/docs/concepts/services-networking/service/ for more details.
+  service:
+    type: ClusterIP
+    port: 80
+    externalTrafficPolicy: Cluster
+    nodePort: ''
+  # Pods resources requirements.
+  resources:
+    requests:
+      memory: 100Mi
+      cpu: 20m
+    limits:
+      memory: 150Mi
+      cpu: 100m
+  # Ingress endpoint settings (optional)
+  # See https://kubernetes.io/docs/concepts/services-networking/ingress/ for more details.
+  ingress:
+    enabled: false
+    host: indexing-service.onsite.com
+    path: /
+    pathType: Prefix
+    className: nginx
+    annotations:
+      ingress.kubernetes.io/ssl-redirect: "false"
+      ingress.kubernetes.io/rewrite-target: /
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  publisherHighPrioritySilencePeriodSec: 30
+  publisherHighPriorityMaxEntitiesPerSilencePeriod: 5
+  workerThreads: 200
+  completionPortThreads: 200
+
+# gs-search-service pods settings.
+searchService:
+  # Pods count.
+  replicaCount: 2
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: RollingUpdate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-search-service
+  # Endpoint description
+  # See https://kubernetes.io/docs/concepts/services-networking/service/ for more details.
+  service:
+    type: ClusterIP
+    port: 80
+    externalTrafficPolicy: Cluster
+    nodePort: ''
+  # Pods resources requirements.
+  resources:
+    requests:
+      memory: 100Mi
+      cpu: 20m
+    limits:
+      memory: 200Mi
+      cpu: 100m
+  # Ingress endpoint settings (optional)
+  # See https://kubernetes.io/docs/concepts/services-networking/ingress/ for more details.
+  ingress:
+    enabled: false
+    host: search-service.onsite.com
+    path: /
+    pathType: Prefix
+    className: nginx
+    annotations:
+      ingress.kubernetes.io/ssl-redirect: "false"
+      ingress.kubernetes.io/rewrite-target:  "/"
+    elastic:
+      enableEndpoint: false
+    rabbitmq:
+      enableEndpoint: false
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+
+# gs-scheduler pods settings.
+scheduler:
+  # Pods count. Value always should be 1
+  replicaCount: 1
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: Recreate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-scheduler
+  # Pods resources requirements.
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 20m
+    limits:
+      memory: 200Mi
+      cpu: 100m
+  # pod environment values
+  env:
+    # Scheduler interval for primary indexing
+    fillQueueInterval: 30000
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+
+# gs-worker pods settings.
+worker:
+  # Pods count.
+  replicaCount: 2
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: Recreate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-worker
+  # Pods resources requirements.
+  resources: 
+    requests:
+      memory: 100Mi
+      cpu: 50m
+    limits:
+      memory: 200Mi
+      cpu: 300m
+  # pod environment values
+  env:
+    # Indexing sql command timeout
+    indexingCommandTimeout: 900
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+
+# gs-worker-replay pods settings.
+workerReplay:
+  # Pods count.
+  replicaCount: 2
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: Recreate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-worker-replay
+  # Pods resources requirements.
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 10m
+    limits:
+      memory: 150Mi
+      cpu: 50m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+
+# gs-worker-single pods settings.
+workerSingle:
+  # Pods count.
+  replicaCount: 3
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: Recreate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-worker-single
+  # Pods resources requirements.
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 20m
+    limits:
+      memory: 350Mi
+      cpu: 100m
+  # pod environment values
+  env:
+    # Indexing sql command timeout
+    indexingCommandTimeout: 10
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+
+# gs-worker-single-replay pods settings.
+workerSingleReplay:
+  # Pods count.
+  replicaCount: 2
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: Recreate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-worker-single-replay
+  # Pods resources requirements.
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 10m
+    limits:
+      memory: 150Mi
+      cpu: 50m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+
+# gs-worker-single-task pods settings.
+workerSingleTask:
+  # Pods count.
+  replicaCount: 2
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: Recreate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-worker-single-task
+  # Pods resources requirements.
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 20m
+    limits:
+      memory: 150Mi
+      cpu: 300m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+
+# gs-worker-querried-single-task pods settings.
+workerQueriedSingleTask:
+  # Pods count.
+  replicaCount: 2
+  # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy for more details.
+  strategy:
+    type: Recreate
+  # Image repository
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/gs-worker-queried-single-task
+  elasticsearch:
+    # Elasticsearch scroll size
+    scrollBatchSize: 0
+    # Elasticsearch scroll timeout
+    scrollTimeout: 60000
+  # Pods resources requirements.
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 150m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+
+# Log4Net settings
+log4Net:
+  mountPath: /app/config
+  level: DEBUG
+  # Graylog connection parameters (optional).
+  grayLog:
+    enabled: false
+    # AMQP connection parameters.
+    AMQP:
+      host: 10.233.3.108
+      port: 5672
+      userName: rabbitmq
+      password: rabbitmq
+      virtualHost: /
+      exchange: gs-logs
+      routingKey: gs-logs
+
+# Multi deployments global parameters
+global:
+  # Elastic search parameters
+  elasticsearch:
+    url: http://192.168.102.22:9200
+    publicUrl: ""
+    user: ""
+    password: ""
+    enableDebugMode: false
+    traceDebugInfo: false
+
+  # Search service external url
+  searchService:
+    url: http://search-service:80
+
+  # Identity provider settings
+  identityProvider:
+    url: ""
+    useOAuth: false
+
+  webApi:
+    url: ""
+
+  # RabbitMQ connection parameters
+  rabbitmq:
+    host: 10.233.3.108
+    vhost: /
+    port: 5672
+    user: rabbitmq
+    password: rabbitmq
+    queuePriorityEnable: false
+    # Service queues.
+    # Do not change this section
+    qname:
+      inbox: gs-inbox
+      outbox: gs-outbox
+      singleTaskInbox: gs-single-task-inbox
+      singleQueriedTaskInbox: gs-single-queried-task-inbox
+      singleInbox: gs-single-inbox
+      singleOutbox: gs-single-outbox
+
+  # Global search database connection parameters
+  db:
+    host: 192.168.102.28
+    port: 5432
+    user: postgres
+    password: 
+    database: globalsearch
+    additionalParams: Pooling=true;MinPoolSize=0;MaxPoolSize=200;
+    # Do not change this section
+    type: postgresql
+    # Do not change this section
+    provider: ServiceStack.OrmLite.PostgreSqlDialect, ServiceStack.OrmLite.PostgreSQL, Culture=neutral, PublicKeyToken=null
+
+  # Redis server connection parameters
+  redis:
+    host: 10.233.14.66
+    port: 6379
+    database: 1
+    additionalParams:
+    connectAttempts: 5
+    reconnectInterval: 0.00:00:05
+    defaultExpiration: 0.02:00:00
+
+  # Elastic search request timeout
+  requestTimeOut: 600000
+  # Primary indexing page setting. How many days in one indexing step will be processed
+  incrementDays: 5
+  # Max content length for entity column data
+  indexingContentLength: 500
+
+# Http liveness probe settings.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes
+livenessProbe:
+  enabled: false
+  initialDelaySeconds: 80
+  periodSeconds: 20
+  failureThreshold: 3
+  timeoutSeconds: 30
+
+# Http readiness probe settings.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes
+readinessProbe:
+  enabled: false
+  initialDelaySeconds: 80
+  periodSeconds: 20
+  failureThreshold: 3
+  timeoutSeconds: 30
+
+# Redis deployment settings
+redis:
+  enabled: false
+# RabbitMQ deployment settings
+rabbitmq:
+  image:
+    tag: 3.13.1
+  enabled: false
+# PostgreSQL deployment settings
+postgresql:
+  enabled: false
+# Elasticsearch deployment settings
+elasticsearch:
+  enabled: false

@@ -1,0 +1,167 @@
+duplicatesCleaner:
+  enabled: false
+  image:
+    repository: docker-rnd.creatio.com/dup-duplicates-cleaner
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+duplicatesDeletionWorker:
+  enabled: false
+  image:
+    repository: docker-rnd.creatio.com/dup-duplicates-deletion-worker
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+duplicatesConfirmationWorker:
+  enabled: false
+  image:
+    repository: docker-rnd.creatio.com/dup-duplicates-confirmation-worker
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+deduplicationTaskDiagnosticWorker:
+  enabled: false
+  image:
+    repository: docker-rnd.creatio.com/dup-deduplication-task-diagnostic-worker
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+
+dataService:
+  enabled: true
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-data-service
+  rabbitmq:
+    duplicateCleaningQueueName: dup-clear-duplicates-ci
+    duplicateDeletionQueueName: dup-delete-duplicates-ci
+    duplicateConfirmationQueueName: dup-confirm-duplicates-ci
+  mongodb:
+    dbname: dup-bulk-deduplication-ci
+    cache:
+      dbname: dup-bulk-deduplication-ci-cache
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 80m
+    limits:
+      memory: 256Mi
+      cpu: 80m
+deduplicationTaskWorker:
+  enabled: true
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-deduplication-task-worker
+  rabbitmq:
+    searchQueueName: dup-search-duplicates-ci
+    searchPreparationQueueName: dup-prepare-search-ci
+    startDeduplicationTaskQueueName: dup-start-deduplication-task-ci
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+deduplicationPreparationWorker:
+  enabled: true
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-deduplication-preparation-worker
+  rabbitmq:
+    searchQueueName: dup-search-duplicates-ci
+    searchPreparationQueueName: dup-prepare-search-ci
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+duplicatesSearchWorker:
+  enabled: true
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-duplicates-search-worker
+  rabbitmq:
+    consumerQueueName: dup-search-duplicates-ci
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+webApi:
+  enabled: true
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  ingress:
+    enabled: false
+  image:
+    repository: docker-rnd.creatio.com/dup-web-api
+  rabbitmq:
+    publishQueueName: dup-start-deduplication-task-ci
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 120m
+    limits:
+      memory: 256Mi
+      cpu: 120m
+global:
+  metrics:
+    enabled: false
+  elasticsearch:
+    protocol: http
+    host: mockserver-ci.deduplication
+    port: 1080
+    path: ""
+    user: user
+    password: password
+  rabbitmq:
+    host: rabbitmq-rnd.bpmonline.com
+    vhost: /
+    port: 5672
+    user: gs
+    password: gs
+    connectAttempts: 5
+    reconnectInterval: "00:00:05"
+    networkRecoveryInterval: "00:00:05"
+  redis:
+    host: bulk-deduplication-redis.deduplication
+    port: 6379
+    database: 4
+    instanceName: "deduplication"
+    defaultExpirationTimeout: "48:00:00"
+  mongodb:
+    host: bulk-deduplication-mongodb.deduplication
+    port: 27017
+    user: root
+    password: dd
+  dataServiceInternalUrl: http://mockserver-ci.deduplication:1080/api

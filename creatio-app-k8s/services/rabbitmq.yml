@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: rabbitmq
+  labels:
+    app: rabbitmq
+spec:
+  replicas: 1  # Set the desired number of replicas
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: 192.168.108.165:8084/creatio-k8s-repo/rabbitmq:3.13.4-debian-12-r0
+          ports:
+            - containerPort: 5672  # RabbitMQ port
+            - containerPort: 15672  # Management UI port
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: rabbit-user  # Replace with your desired RabbitMQ user
+            - name: RABBITMQ_DEFAULT_PASS
+              value: rabbit-password  # Replace with your desired password
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-service
+  namespace: rabbitmq
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5672
+      targetPort: 5672
+      name: rabbitmq-service
+  selector:
+    app: rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-mgt-ui-service
+  namespace: rabbitmq
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 15672
+      targetPort: 15672
+      name: rabbit-mgt-ui
+  selector:
+    app: rabbitmq

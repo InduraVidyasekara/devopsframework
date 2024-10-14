@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-duplicates-deletion-worker
+  labels:
+    app: {{ .Release.Name }}-duplicates-deletion-worker
+    chart: {{ template "deduplication.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.duplicatesDeletionWorker.replicaCount }}
+{{- with .Values.duplicatesDeletionWorker.strategy }}
+  strategy:
+{{ toYaml . | indent 4  }}
+{{ end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-duplicates-deletion-worker
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Release.Name }}-duplicates-deletion-worker
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: log4net-file
+          configMap:
+            name: {{ .Release.Name }}-logging-configmap
+            items:
+              - key: log4net.config
+                path: log4net.config
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.duplicatesDeletionWorker.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.duplicatesDeletionWorker.image.pullPolicy }}
+          volumeMounts:
+            - name: log4net-file
+              mountPath: {{ .Values.log4Net.mountPath }}
+          env:
+            - name: RabbitConfiguration__RabbitMQUri
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-deduplication-secrets
+                  key: rabbitmqConnectionString
+            - name: RabbitConfiguration__ConnectAttempts
+              value: {{ .Values.global.rabbitmq.connectAttempts | quote }}
+            - name: RabbitConfiguration__ReconnectInterval
+              value: {{ .Values.global.rabbitmq.reconnectInterval }}
+            - name: RabbitConfiguration__NetworkRecoveryInterval
+              value: {{ .Values.global.rabbitmq.networkRecoveryInterval }}
+            - name: MongoDbConfiguration__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-deduplication-secrets
+                  key: mongodbConnectionString
+            - name: MongoDbConfiguration__DatabaseName
+              value: {{ .Values.dataService.mongodb.dbname }}
+            - name: RabbitConsumerConfiguration__QueueName
+              value: {{ .Values.duplicatesDeletionWorker.rabbitmq.consumerQueueName }}
+            - name: Logger4NetConfiguration__LoggerName
+              value: {{ .Values.log4Net.loggerName }}
+            - name: Logger4NetConfiguration__LoggerRepositoryName
+              value: {{ .Values.log4Net.repositoryName }}
+            - name: Logger4NetConfiguration__LogFilePath
+              value: {{ .Values.log4Net.filePath }}
+          resources:
+{{ toYaml .Values.duplicatesDeletionWorker.resources | indent 12 }}
+    {{- with .Values.duplicatesDeletionWorker.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.duplicatesDeletionWorker.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.duplicatesDeletionWorker.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

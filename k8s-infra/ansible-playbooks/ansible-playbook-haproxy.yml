@@ -16,8 +16,6 @@
         state: present
       become: true
 
-
-
     - name: Enable and start HAProxy service
       systemd:
         name: haproxy

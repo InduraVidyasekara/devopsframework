@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deduplication-task-diagnostic-worker
+  labels:
+    app: {{ .Release.Name }}-deduplication-task-diagnostic-worker
+    chart: {{ template "deduplication.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.deduplicationTaskDiagnosticWorker.replicaCount }}
+{{- with .Values.deduplicationTaskDiagnosticWorker.strategy }}
+  strategy:
+{{ toYaml . | indent 4  }}
+{{ end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-deduplication-task-diagnostic-worker
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Release.Name }}-deduplication-task-diagnostic-worker
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: log4net-file
+          configMap:
+            name: {{ .Release.Name }}-logging-configmap
+            items:
+              - key: log4net.config
+                path: log4net.config
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.deduplicationTaskDiagnosticWorker.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.deduplicationTaskDiagnosticWorker.image.pullPolicy }}
+          volumeMounts:
+            - name: log4net-file
+              mountPath: {{ .Values.log4Net.mountPath }}
+          env:
+            - name: MongoDbConfiguration__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-deduplication-secrets
+                  key: mongodbConnectionString
+            - name: MongoDbConfiguration__DatabaseName
+              value: {{ .Values.dataService.mongodb.dbname }}
+            - name: TimerInterval
+              value: {{ .Values.deduplicationTaskDiagnosticWorker.env.TimerInterval }}
+            - name: Logger4NetConfiguration__LoggerName
+              value: {{ .Values.log4Net.loggerName }}
+            - name: Logger4NetConfiguration__LoggerRepositoryName
+              value: {{ .Values.log4Net.repositoryName }}
+            - name: Logger4NetConfiguration__LogFilePath
+              value: {{ .Values.log4Net.filePath }}
+          resources:
+{{ toYaml .Values.deduplicationTaskDiagnosticWorker.resources | indent 12 }}
+    {{- with .Values.deduplicationTaskDiagnosticWorker.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.deduplicationTaskDiagnosticWorker.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.deduplicationTaskDiagnosticWorker.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

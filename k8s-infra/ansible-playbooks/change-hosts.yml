@@ -1,0 +1,37 @@
+---
+- name: Update /etc/hosts
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update hosts file for K8s master
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      with_items:
+        - "192.168.122.61 k8s-master-internal.local"
+
+    - name: Update hosts file for K8s workers
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      with_items:
+        - "192.168.122.63 k8s-worker-1-internal.local"
+        - "192.168.122.64 k8s-worker-2-internal.local"
+
+    - name: Update hosts file for monitoring servers
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      with_items:
+        - "192.168.122.65 grafana-kibana-internal.local"
+        - "192.168.122.66 elasticsearch-logstash-internal.local"
+
+    - name: Update hosts file for artifact repository server
+      lineinfile:
+        path: /etc/hosts
+        line: "192.168.122.67 nexus-internal.local"
+
+    - name: Update hosts file for jumphost server
+      lineinfile:
+        path: /etc/hosts
+        line: "192.168.122.68 jumphost-internal.local"

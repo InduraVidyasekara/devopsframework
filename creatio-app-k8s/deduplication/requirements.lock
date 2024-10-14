@@ -1,0 +1,12 @@
+dependencies:
+- name: redis
+  repository: https://charts.helm.sh/stable
+  version: 10.3.2
+- name: rabbitmq
+  repository: https://charts.helm.sh/stable
+  version: 6.16.1
+- name: mongodb
+  repository: https://charts.helm.sh/stable
+  version: 7.8.10
+digest: sha256:b348ad1cf470a661a63a526c2eb8df18f671fb2013b0e64464ca0e723c5a3cd9
+generated: "2021-01-05T19:04:25.1118788+02:00"

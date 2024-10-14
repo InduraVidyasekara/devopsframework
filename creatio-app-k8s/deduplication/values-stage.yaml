@@ -1,0 +1,187 @@
+webApi:
+  replicaCount: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  image:
+    repository: docker-rnd.creatio.com/dup-web-api
+  service:
+    type: NodePort
+    nodePort: 31005
+  ingress:
+    enabled: true
+    host: deduplication-stage.bpmonline.com
+  rabbitmq:
+    publishQueueName: dup-start-deduplication-task-stage
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 120m
+    limits:
+      memory: 256Mi
+      cpu: 120m
+dataService:
+  replicaCount: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  image:
+    repository: docker-rnd.creatio.com/dup-data-service
+  service:
+    type: NodePort
+    nodePort: 31878
+  rabbitmq:
+    duplicateCleaningQueueName: dup-clear-duplicates-stage
+    duplicateDeletionQueueName: dup-delete-duplicates-stage
+    duplicateConfirmationQueueName: dup-confirm-duplicates-stage
+  mongodb:
+    dbname: dup-bulk-deduplication-stage
+    cache:
+      dbname: dup-bulk-deduplication-stage-cache
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 80m
+    limits:
+      memory: 256Mi
+      cpu: 80m
+deduplicationTaskWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-deduplication-task-worker
+  rabbitmq:
+    searchQueueName: dup-search-duplicates-stage
+    searchPreparationQueueName: dup-prepare-search-stage
+    startDeduplicationTaskQueueName: dup-start-deduplication-task-stage
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+deduplicationTaskDiagnosticWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-deduplication-task-diagnostic-worker
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+deduplicationPreparationWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-deduplication-preparation-worker
+  rabbitmq:
+    searchQueueName: dup-search-duplicates-stage
+    searchPreparationQueueName: dup-prepare-search-stage
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+duplicatesCleaner:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-duplicates-cleaner
+  rabbitmq:
+    consumerQueueName: dup-clear-duplicates-stage
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+duplicatesSearchWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-duplicates-search-worker
+  rabbitmq:
+    consumerQueueName: dup-search-duplicates-stage
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+duplicatesDeletionWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-duplicates-deletion-worker
+  rabbitmq:
+    consumerQueueName: dup-delete-duplicates-stage
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+duplicatesConfirmationWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: docker-rnd.creatio.com/dup-duplicates-confirmation-worker
+  rabbitmq:
+    consumerQueueName: dup-confirm-duplicates-stage
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 128Mi
+      cpu: 60m
+global:
+  metrics:
+    enabled: false
+  elasticsearch:
+    protocol: http
+    host: elasticsearch-master.globalsearch
+    port: 9200
+    path: /
+    user: user
+    password: password
+  rabbitmq:
+    host: rabbitmq-rnd.bpmonline.com
+    vhost: /
+    port: 5672
+    user: gs
+    password: gs
+    connectAttempts: 5
+    reconnectInterval: "00:00:05"
+    networkRecoveryInterval: "00:00:05"
+  redis:
+    host: bulk-deduplication-redis.deduplication
+    port: 6379
+    database: 3
+    instanceName: "deduplication"
+    defaultExpirationTimeout: "48:00:00"
+  mongodb:
+    host: bulk-deduplication-mongodb.deduplication
+    port: 27017
+    user: root
+    password: dd

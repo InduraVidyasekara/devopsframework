@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+  namespace: postgresql  
+  labels:
+    app: postgresql
+spec:
+  serviceName: postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      containers:
+      - name: postgresql
+        image: 192.168.108.165:8084/creatio-k8s-repo/postgresql:11.5.0-debian-9-r60
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        name: postgresql
+        env:
+        - name: POSTGRES_USER
+          value: "pg_user"
+
+        - name: POSTGRES_PASSWORD
+          value: "pg_password"
+
+        - name: POSTGRES_DB
+          value: "pg_db"  
+
+
+        volumeMounts:
+        - name: postgresql-data
+          mountPath: /var/lib/postgresql/data
+
+        - name: postgres-custom-config
+          mountPath: /var/lib/postgresql/data/pg_hba.conf
+        
+        # livenessProbe:
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 6
+        #   successThreshold: 1
+        #   exec:
+        #     command:
+        #     - pg_isready
+        #     - -U
+        #     - postgres
+        # readinessProbe:
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 6
+        #   successThreshold: 1
+        #   exec:
+        #     command:
+        #     - pg_isready
+        #     - -U
+        #     - postgres
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 250m
+      volumes:
+      - name: postgresql-data
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: postgresql
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres-service
+  selector:
+    app: postgresql
+    
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-secret
+  namespace: postgresql
+  labels:
+    app: postgresql
+data:
+  POSTGRES_DB: ps_db
+  POSTGRES_USER: ps_user
+  POSTGRES_PASSWORD: ps_password
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-custom-config
+  namespace: postgresql
+data:
+  pg_hba.conf: |-
+    # Unix sockets
+    local  all  postgres  trust
+    # IPv4 local connections:
+    host  all  all  0.0.0.0/0  trust

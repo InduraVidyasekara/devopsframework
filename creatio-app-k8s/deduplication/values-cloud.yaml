@@ -1,0 +1,46 @@
+# dd-web-api pods settings.
+webApi:
+  # Ingress endpoint settings (optional)
+  # See https://kubernetes.io/docs/concepts/services-networking/ingress/ for more details.
+  ingress:
+    enabled: true
+    host: dd-web-api.onsite.com
+    path: /
+
+# Log4Net settings
+log4Net:
+  # Graylog connection parameters (optional).
+  grayLog:
+    enabled: true
+
+# Multi deployments global parameters
+global:
+  # Elastic search connection parameters
+  elasticsearch:
+    protocol: http
+    host: elasticsearch-master
+    port: 9200
+    path: /
+    user: 
+    password: 
+
+  # RabbitMQ connection parameters
+  rabbitmq:
+    host: rabbitmq
+    vhost: /
+    port: 5672
+    user: gs
+    password: gs
+
+  # Redis server connection parameters
+  redis:
+    host: redis-master
+    port: 6379
+    database: 2
+
+  # Deduplication database connection parameters
+  mongodb:
+    host: mongodb
+    port: 27017
+    user: 
+    password: 

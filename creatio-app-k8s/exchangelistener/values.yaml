@@ -1,0 +1,57 @@
+image:
+  repository: 192.168.108.165:8084/creatio-k8s-repo/emaillistener
+  tag: 1.0.36
+  pullPolicy: IfNotPresent
+replicaCount: 2
+workerReplicaCount: 2
+service:
+  type: LoadBalancer
+  port: 8080
+  
+ingress:
+  enabled: false
+  annotations: {}
+  path: /
+  pathType: Prefix
+  tls: []
+ApiUrl: test.domain.com
+apiVersion: apps/v1
+resources:
+  statefullset:
+    limits:
+      cpu: 150m
+      memory: 850Mi
+  worker:
+    limits:
+      cpu: 100m
+      memory: 1000Mi
+env:
+  host: 10.233.14.66
+  port: 6379
+  base: 0
+log4Net:
+  level: INFO
+GrayLog:
+  AMQP:
+    port: 5672
+    virtualHost: /
+    exchange: el-logs
+    routingKey: el-logs
+RabbitMQ:
+  AmqpPort: 5672
+Redis: {}
+Features:
+  IgnoreCertificateValidation: true
+  UseLockMailboxConnections: true
+  UseWatchDog: true
+Auth: {}
+Security: {}
+nodeSelector: {}
+affinity: {}
+tolerations: []
+api:
+  extraVolumeMounts: []
+  extraConfigMapMounts: []
+worker:
+  extraVolumeMounts: []
+  extraConfigMapMounts: []

@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-search-service
+  labels:
+    app: {{ .Release.Name }}-search-service
+    chart: {{ template "gs.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.searchService.replicaCount }}
+{{- with .Values.searchService.strategy }}
+  strategy:
+{{ toYaml . | indent 4  }}
+{{ end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-search-service
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        timestamp: {{ now | quote }}
+      labels:
+        app: {{ .Release.Name }}-search-service
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: log4net-file
+          configMap:
+            name: {{ .Release.Name }}-logging-configmap
+            items:
+              - key: log4net.config
+                path: log4net.config
+{{ if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{ toYaml .Values.image.pullSecrets | indent 8 }}
+{{- end }}
+{{ if .Values.searchService.nodeName }}
+      nodeName: {{ .Values.searchService.nodeName }}
+{{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.searchService.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: log4net-file
+              mountPath: {{ .Values.log4Net.mountPath }}
+
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          env:
+            - name: ElasticSearch__Url
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-global-config-map
+                  key: es.url
+            - name: ElasticSearch__Login
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: elasticsearchUser
+            - name: ElasticSearch__Password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: elasticsearchPassword
+            - name: ElasticSearch__EnableDebugMode
+              value: "{{ .Values.global.elasticsearch.enableDebugMode }}"
+            - name: ElasticSearch__TraceDebugInfo
+              value: "{{ .Values.global.elasticsearch.traceDebugInfo }}"
+            - name: Log4NetPath
+              value: {{ .Values.log4Net.mountPath }}/log4net.config
+            - name: AuthenticationOptions__IdentityProviderUrl
+              value: "{{ .Values.global.identityProvider.url }}"
+            - name: AuthenticationOptions__UseOAuth
+              value: "{{ .Values.global.identityProvider.useOAuth }}"
+            - name: WebAppUrl
+              value: "http://{{ .Release.Name }}-web-api/"
+{{ if .Values.searchService.INDICES_WITH_DISABLE_HIGHLIGHT }}
+            - name: INDICES_WITH_DISABLE_HIGHLIGHT
+              value: "{{ .Values.searchService.INDICES_WITH_DISABLE_HIGHLIGHT }}"
+{{- end }}
+{{ if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+{{- end }}
+{{ if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+{{- end }}
+          resources:
+{{ toYaml .Values.searchService.resources | indent 12 }}
+    {{- with .Values.searchService.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.searchService.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.searchService.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

@@ -1,0 +1,13 @@
+dependencies:
+  - name: redis
+    version: 10.3.2
+    condition: redis.enabled
+    repository: https://charts.helm.sh/stable
+  - name: rabbitmq
+    version: 6.16.1
+    condition: rabbitmq.enabled
+    repository: https://charts.helm.sh/stable
+  - name: mongodb
+    version: 7.8.10
+    condition: mongodb.enabled
+    repository: https://charts.helm.sh/stable
