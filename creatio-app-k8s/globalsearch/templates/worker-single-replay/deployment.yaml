@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-worker-single-replay
+  labels:
+    app: {{ .Release.Name }}-worker-single-replay
+    chart: {{ template "gs.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.workerSingleReplay.replicaCount }}
+{{- with .Values.workerSingleReplay.strategy }}
+  strategy:
+{{ toYaml . | indent 4  }}
+{{ end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-worker-single-replay
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        timestamp: {{ now | quote }}
+      labels:
+        app: {{ .Release.Name }}-worker-single-replay
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: log4net-file
+          configMap:
+            name: {{ .Release.Name }}-logging-configmap
+            items:
+              - key: log4net.config
+                path: log4net.config
+{{ if .Values.workerSingleReplay.nodeName }}
+      nodeName: {{ .Values.workerSingleReplay.nodeName }}
+{{- end }}
+{{ if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{ toYaml .Values.image.pullSecrets | indent 8 }}
+{{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.workerSingleReplay.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: log4net-file
+              mountPath: {{ .Values.log4Net.mountPath }}
+
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+
+          env:
+            - name: DbDialectProvider
+              value: {{ .Values.global.db.provider }}
+            - name: connectionStrings__db
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: databaseConnectionString
+            - name: RabbitMQSettings__QueuePriorityEnable
+              value: '{{ .Values.global.rabbitmq.queuePriorityEnable }}'
+            - name: RabbitMQSettings__RabbitQueueName
+              value: {{ .Values.global.rabbitmq.qname.singleInbox }}
+            - name: RabbitMQSettings__ReplyRabbitQueueName
+              value: {{ .Values.global.rabbitmq.qname.singleOutbox }}
+            - name: RabbitMQSettings__IncrementDays
+              value: "{{ .Values.global.incrementDays | int64 }}"
+            - name: connectionStrings__RabbitMQ
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: rabbitmqConnectionString
+            - name: Log4NetPath
+              value: {{ .Values.log4Net.mountPath }}/log4net.config
+{{ if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+{{- end }}
+{{ if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+{{- end }}
+          resources:
+{{ toYaml .Values.workerSingleReplay.resources | indent 12 }}
+    {{- with .Values.workerSingleReplay.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.workerSingleReplay.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.workerSingleReplay.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

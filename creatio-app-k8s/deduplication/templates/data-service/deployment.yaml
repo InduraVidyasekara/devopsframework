@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-data-service
+  labels:
+    app: {{ .Release.Name }}-data-service
+    chart: {{ template "deduplication.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.dataService.replicaCount }}
+{{- with .Values.dataService.strategy }}
+  strategy:
+{{ toYaml . | indent 4  }}
+{{ end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-data-service
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Release.Name }}-data-service
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: log4net-file
+          configMap:
+            name: {{ .Release.Name }}-logging-configmap
+            items:
+              - key: log4net.config
+                path: log4net.config
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.dataService.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.dataService.image.pullPolicy }}
+          volumeMounts:
+            - name: log4net-file
+              mountPath: {{ .Values.log4Net.mountPath }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: MongoDBCacheOptions__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-deduplication-secrets
+                  key: mongodbConnectionString
+            - name: MongoDBCacheOptions__DatabaseName
+              value: {{ .Values.dataService.mongodb.cache.dbname }}
+            - name: MongoDBCacheOptions__CacheCollectionName
+              value: {{ .Values.dataService.mongodb.cache.cacheCollectionName }}
+            - name: MongoDBCacheOptions__DefaultExpirationTimeout
+              value: {{ .Values.dataService.mongodb.cache.defaultExpirationTimeout }}
+            - name: RedisCacheOptions__InstanceName
+              value: {{ .Values.global.redis.instanceName }}
+            - name: RedisCacheOptions__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-deduplication-secrets
+                  key: redisConnectionString
+            - name: RedisCacheOptions__DefaultExpirationTimeout
+              value: {{ .Values.global.redis.defaultExpirationTimeout }}
+            - name: RabbitConfiguration__RabbitMQUri
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-deduplication-secrets
+                  key: rabbitmqConnectionString
+            - name: RabbitConfiguration__ConnectAttempts
+              value: {{ .Values.global.rabbitmq.connectAttempts | quote }}
+            - name: RabbitConfiguration__ReconnectInterval
+              value: {{ .Values.global.rabbitmq.reconnectInterval }}
+            - name: RabbitConfiguration__NetworkRecoveryInterval
+              value: {{ .Values.global.rabbitmq.networkRecoveryInterval }}
+            - name: CleaningPublisherConfiguration__QueueName
+              value: {{ .Values.dataService.rabbitmq.duplicateCleaningQueueName }}
+            - name: DeletionPublisherConfiguration__QueueName
+              value: {{ .Values.dataService.rabbitmq.duplicateDeletionQueueName }}
+            - name: ConfirmationPublisherConfiguration__QueueName
+              value: {{ .Values.dataService.rabbitmq.duplicateConfirmationQueueName }}
+            - name: MongoDbConfiguration__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-deduplication-secrets
+                  key: mongodbConnectionString
+            - name: MongoDbConfiguration__DatabaseName
+              value: {{ .Values.dataService.mongodb.dbname }}
+            - name: Logger4NetConfiguration__LoggerName
+              value: {{ .Values.log4Net.loggerName }}
+            - name: Logger4NetConfiguration__LoggerRepositoryName
+              value: {{ .Values.log4Net.repositoryName }}
+            - name: Logger4NetConfiguration__LogFilePath
+              value: {{ .Values.log4Net.filePath }}
+            - name: MetricsOptions__Enabled
+              value: {{ .Values.global.metrics.enabled | quote }}
+            - name: MetricsOptions__GlobalTags__env
+              value: {{ .Values.global.metrics.env }}
+          resources:
+{{ toYaml .Values.dataService.resources | indent 12 }}
+    {{- with .Values.dataService.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.dataService.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.dataService.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

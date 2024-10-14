@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-web-api
+  labels:
+    app: {{ .Release.Name }}-web-api
+    chart: {{ template "gs.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.webApi.replicaCount }}
+{{- with .Values.webApi.strategy }}
+  strategy:
+{{ toYaml . | indent 4  }}
+{{ end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-web-api
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        timestamp: {{ now | quote }}
+      labels:
+        app: {{ .Release.Name }}-web-api
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: log4net-file
+          configMap:
+            name: {{ .Release.Name }}-logging-configmap
+            items:
+              - key: log4net.config
+                path: log4net.config
+{{ if .Values.webApi.nodeName }}
+      nodeName: {{ .Values.webApi.nodeName }}
+{{- end }}
+{{ if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{ toYaml .Values.image.pullSecrets | indent 8 }}
+{{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.webApi.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: log4net-file
+              mountPath: {{ .Values.log4Net.mountPath }}
+
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          env:
+            - name: connectionStrings__db
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: databaseConnectionString
+            - name: connectionStrings__DbType
+              value: "{{ .Values.global.db.type }}"
+            - name: RedisCacheOptions__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: redisConnectionString
+            - name: RedisCacheOptions__ConnectAttempts
+              value: {{ .Values.global.redis.connectAttempts | quote }}
+            - name: RedisCacheOptions__ReconnectInterval
+              value: {{ .Values.global.redis.reconnectInterval }}
+            - name: RedisCacheOptions__DefaultExpiration
+              value: {{ .Values.global.redis.defaultExpiration }}
+            - name: RequestTimeOut
+              value: "{{ .Values.global.requestTimeOut | int64 }}"
+            - name: ScheduledIndexationConfiguration__IndexingIntervalInDays
+              value: "{{ .Values.global.incrementDays | int64 }}"
+            - name: searchServiceUrl
+              value: "{{ .Values.global.searchService.url }}"
+            - name: elasticSearchUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-global-config-map
+                  key: es.url
+            - name: elasticLogin
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: elasticsearchUser
+            - name: elasticPassword
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gs-secrets
+                  key: elasticsearchPassword
+            - name: Log4NetPath
+              value: {{ .Values.log4Net.mountPath }}/log4net.config
+            - name: IgnoredEntities
+              value: "{{ .Values.webApi.env.ignoredEntities }}"
+            - name: AuthenticationOptions__IdentityProviderUrl
+              value: "{{ .Values.global.identityProvider.url }}"
+            - name: AuthenticationOptions__UseOAuth
+              value: "{{ .Values.global.identityProvider.useOAuth }}"
+            - name: workerThreads
+              value: "{{ .Values.webApi.workerThreads | int64  }}"
+            - name: completionPortThreads
+              value: "{{ .Values.webApi.completionPortThreads | int64  }}"
+{{ if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+{{- end }}
+{{ if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+{{- end }}
+          resources:
+{{ toYaml .Values.webApi.resources | indent 12 }}
+    {{- with .Values.webApi.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.webApi.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.webApi.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

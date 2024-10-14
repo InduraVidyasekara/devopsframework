@@ -1,0 +1,5 @@
+apiVersion: v1
+appVersion: 3.0.12
+description: The service of 'Bulk Duplicates Search'.
+name: deduplication
+version: 3.0.12

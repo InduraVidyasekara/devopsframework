@@ -1,0 +1,266 @@
+image:
+  tag: 3.0.12
+webApi:
+  replicaCount: 2
+  strategy:
+    type: RollingUpdate
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/dup-web-api
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 100Mi
+      cpu: 50m
+    limits:
+      memory: 300Mi
+      cpu: 100m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  service:
+    type: ClusterIP
+    port: 80
+    externalTrafficPolicy: Cluster
+    nodePort: ''
+  ingress:
+    enabled: false
+    host: dd-web-api.onsite.com
+    path: /
+    pathType: Prefix
+    className: nginx
+    annotations:
+      ingress.kubernetes.io/ssl-redirect: 'false'
+      ingress.kubernetes.io/rewrite-target: /
+  rabbitmq:
+    publishQueueName: dup-start-deduplication-task
+  duplicateSearch:
+    defaultMaxDuplicatesPerRecord: 100
+dataService:
+  replicaCount: 2
+  strategy:
+    type: RollingUpdate
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/dup-data-service
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 100Mi
+      cpu: 100m
+    limits:
+      memory: 300Mi
+      cpu: 250m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  service:
+    type: ClusterIP
+    port: 80
+  rabbitmq:
+    duplicateCleaningQueueName: dup-clear-duplicates
+    duplicateDeletionQueueName: dup-delete-duplicates
+    duplicateConfirmationQueueName: dup-confirm-duplicates
+  mongodb:
+    dbname: dup-bulk-deduplication
+    cache:
+      dbname: dup-bulk-deduplication-cache
+      cacheCollectionName: CacheCollection
+      defaultExpirationTimeout: '48:00:00'
+deduplicationTaskWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/dup-deduplication-task-worker
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 50Mi
+      cpu: 50m
+    limits:
+      memory: 100Mi
+      cpu: 100m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  rabbitmq:
+    searchQueueName: dup-search-duplicates
+    searchPreparationQueueName: dup-prepare-search
+    startDeduplicationTaskQueueName: dup-start-deduplication-task
+deduplicationTaskDiagnosticWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/dup-deduplication-task-diagnostic-worker
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 60m
+    limits:
+      memory: 200Mi
+      cpu: 100m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  env:
+    TimerInterval: 0.02:00:00
+deduplicationPreparationWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/dup-deduplication-preparation-worker
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 50Mi
+      cpu: 50m
+    limits:
+      memory: 100Mi
+      cpu: 100m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  rabbitmq:
+    searchQueueName: dup-search-duplicates
+    searchPreparationQueueName: dup-prepare-search
+duplicatesCleaner:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/dup-duplicates-cleaner
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 50Mi
+      cpu: 50m
+    limits:
+      memory: 100Mi
+      cpu: 100m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  rabbitmq:
+    consumerQueueName: dup-clear-duplicates
+duplicatesSearchWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/dup-duplicates-search-worker
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 50Mi
+      cpu: 50m
+    limits:
+      memory: 100Mi
+      cpu: 100m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  rabbitmq:
+    consumerQueueName: dup-search-duplicates
+  duplicateSearchPageSize: 10
+  maxDuplicatesPerRecord: 100
+  minimumShouldMatchPercentage: 100
+duplicatesDeletionWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/dup-duplicates-deletion-worker
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 50Mi
+      cpu: 50m
+    limits:
+      memory: 100Mi
+      cpu: 100m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  rabbitmq:
+    consumerQueueName: dup-delete-duplicates
+duplicatesConfirmationWorker:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  image:
+    repository: 192.168.108.165:8084/creatio-k8s-repo/dup-duplicates-confirmation-worker
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 50Mi
+      cpu: 100m
+    limits:
+      memory: 100Mi
+      cpu: 250m
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+  rabbitmq:
+    consumerQueueName: dup-confirm-duplicates
+
+log4Net:
+  mountPath: /app/config
+  filePath: /app/config/log4net.config
+  loggerName: bulk-deduplication-logger
+  repositoryName: default
+  level: ERROR
+  grayLog:
+    enabled: false
+    AMQP:
+      host: 10.233.3.108
+      port: 5672
+      userName: rabbitmq
+      password: rabbitmq
+      virtualHost: globalSearchVh
+      exchange: deduplication-logs
+      routingKey: deduplication-logs
+
+global:
+  scrollBatchSize: 1000
+  scrollTimeout: 01:00:00
+  metrics:
+    enabled: false
+    env: uat
+  elasticsearch:
+    protocol: http
+    host: 192.168.102.22
+    port: 9200
+    path: /
+    user: ''
+    password: ''
+  rabbitmq:
+    host: 10.233.3.108
+    vhost: /
+    port: 5672
+    user: rabbitmq
+    password: rabbitmq
+    connectAttempts: 5
+    reconnectInterval: 00:00:05
+    networkRecoveryInterval: 00:00:05
+  redis:
+    host: 10.233.53.98
+    port: 6379
+    database: 2
+    additionalParams: ',syncTimeout=5000'
+    instanceName: deduplication
+    defaultExpirationTimeout: '48:00:00'
+  mongodb:
+    host: 192.168.102.25
+    port: 27017
+    user: 
+    password: 
+    additionalParams: ?uuidRepresentation=Standard
+    
+redis:
+  enabled: false
+rabbitmq:
+  enabled: false
+mongodb:
+  enabled: false
