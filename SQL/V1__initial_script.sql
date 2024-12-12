@@ -1,0 +1,88 @@
+﻿/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+SET NAMES 'utf8';
+-- SET GLOBAL FOREIGN_KEY_CHECKS=0;
+
+CREATE DATABASE IF NOT EXISTS ml
+CHARACTER SET utf8
+COLLATE utf8_general_ci;
+
+USE ml;
+
+CREATE TABLE IF NOT EXISTS ModelInstance (
+  Id varchar(50) NOT NULL,
+  CreatedOn datetime DEFAULT CURRENT_TIMESTAMP,
+  TrainSessionId varchar(50) NOT NULL,
+  IsActive tinyint(1) DEFAULT 0,
+  TrainingTimeMinutes int(11) DEFAULT NULL,
+  TrainSetSize int(11) DEFAULT NULL,
+  ModelMetric decimal(12, 2) DEFAULT NULL,
+  ModelMetricType varchar(50) DEFAULT NULL,
+  ModelData longtext DEFAULT NULL,
+  ModelSummary longtext DEFAULT NULL,
+  XgbData longtext DEFAULT NULL,
+  Version decimal(4, 2) DEFAULT 1.00,
+  PRIMARY KEY (Id),
+  UNIQUE INDEX IModelInstance_Id (Id),
+  UNIQUE INDEX TrainSessionId (TrainSessionId),
+  CONSTRAINT FK_modelinstance_TrainSessionId FOREIGN KEY (TrainSessionId)
+  REFERENCES trainsession (Id) ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE = INNODB
+AVG_ROW_LENGTH = 3640769
+CHARACTER SET utf8
+COLLATE utf8_general_ci
+ROW_FORMAT = DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS TrainData (
+  Id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  CreatedOn datetime DEFAULT CURRENT_TIMESTAMP,
+  Data longblob NOT NULL,
+  TrainSessionId varchar(50) NOT NULL,
+  PRIMARY KEY (Id),
+  UNIQUE INDEX ITrainData_Id (Id),
+  INDEX ITrainData_TrainSessionId (TrainSessionId),
+  CONSTRAINT FK_traindata_TrainSessionId FOREIGN KEY (TrainSessionId)
+  REFERENCES trainsession (Id) ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE = INNODB
+AUTO_INCREMENT = 1
+AVG_ROW_LENGTH = 180224
+CHARACTER SET utf8
+COLLATE utf8_general_ci
+ROW_FORMAT = DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS TrainSession (
+  Id varchar(50) NOT NULL,
+  CreatedOn datetime DEFAULT CURRENT_TIMESTAMP,
+  State varchar(50) DEFAULT NULL,
+  ProblemType VARCHAR(50) DEFAULT NULL,
+  ApiKey varchar(50) DEFAULT NULL,
+  ModelSchemaId varchar(50) DEFAULT NULL,
+  ModelSchemaMetadata varchar(10000) DEFAULT NULL,
+  StateChangedOn datetime DEFAULT NULL,
+  LastError varchar(500) DEFAULT NULL,
+  PRIMARY KEY (Id),
+  UNIQUE INDEX ITrainSession_Id (Id)
+)
+ENGINE = INNODB
+AVG_ROW_LENGTH = 4096
+CHARACTER SET utf8
+COLLATE utf8_general_ci
+ROW_FORMAT = DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS PredictionSummary (
+  Id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  ApiKey CHAR(40) DEFAULT NULL,
+  MonthStartDay DATE DEFAULT NULL,
+  Count INT(11) DEFAULT NULL,
+  PRIMARY KEY (Id)
+)
+ENGINE = INNODB
+AUTO_INCREMENT = 1
+AVG_ROW_LENGTH = 4096
+CHARACTER SET utf8
+COLLATE utf8_general_ci
+ROW_FORMAT = DYNAMIC;
+
+SET GLOBAL max_allowed_packet=33554432;

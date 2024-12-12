@@ -1,0 +1,28 @@
+﻿DROP PROCEDURE IF EXISTS Alter_Table;
+
+DELIMITER $$
+CREATE PROCEDURE Alter_Table()
+BEGIN
+	IF NOT EXISTS (
+		SELECT NULL 
+		FROM information_schema.TABLE_CONSTRAINTS
+		WHERE
+			CONSTRAINT_SCHEMA = DATABASE() AND
+			CONSTRAINT_NAME	= 'FK_modelinstance_TrainSessionId' AND
+			CONSTRAINT_TYPE	= 'FOREIGN KEY') THEN
+		BEGIN
+			DELETE FROM modelinstance
+				WHERE TrainSessionId NOT IN (SELECT Id FROM trainsession t);
+
+			ALTER TABLE ModelInstance
+			ADD CONSTRAINT FK_modelinstance_TrainSessionId
+			FOREIGN KEY (TrainSessionId)
+			REFERENCES TrainSession (Id)	ON DELETE CASCADE ON UPDATE CASCADE;
+		END;
+	END IF;
+END $$
+DELIMITER ;
+
+CALL Alter_Table();
+
+DROP PROCEDURE Alter_Table;

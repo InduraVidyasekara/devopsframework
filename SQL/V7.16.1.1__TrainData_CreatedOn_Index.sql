@@ -1,0 +1,2 @@
+-- ALTER TABLE TrainData 
+--   ADD INDEX IDX_TrainData_CreatedOn(CreatedOn);
