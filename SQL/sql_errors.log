@@ -1,0 +1,69 @@
+SQL Error Log - Fri Dec 13 01:10:32 +0530 2024
+[V1__initial_script.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V1__initial_script.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.11.0__gender_model.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.11.0__gender_model.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.12.1.1__eng_case_demo_model.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.12.1.1__eng_case_demo_model.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.12.1.2__rus_case_demo_model.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.12.1.2__rus_case_demo_model.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.13.0.1__housing_regression_model.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.13.0.1__housing_regression_model.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.13.0.44__add_modelinstance.featureimportance_column.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.13.0.44__add_modelinstance.featureimportance_column.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.14.0.1__DemoSalesLeadScoreModel_R.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.14.0.1__DemoSalesLeadScoreModel_R.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.14.0.2__DemoSalesLeadScoreModel_NewUI_R.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.14.0.2__DemoSalesLeadScoreModel_NewUI_R.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.14.0.3__DemoCaseClassification_enu_Model_NewUI_R.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.14.0.3__DemoCaseClassification_enu_Model_NewUI_R.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.14.0.4__DemoCaseClassification_rus_Model_NewUI_R.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.14.0.4__DemoCaseClassification_rus_Model_NewUI_R.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.14.1.0__add_modelInstance.version_column.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.14.1.0__add_modelInstance.version_column.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.14.1.1__add_models_for_api_tests.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.14.1.1__add_models_for_api_tests.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.14.1.2__add_models_for_acceptance_tests.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.14.1.2__add_models_for_acceptance_tests.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.14.1.3__recreate_fk_modelInstance_trainsessionid.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.14.1.3__recreate_fk_modelInstance_trainsessionid.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.15.3.0__add_r_models_for_tests_in_hybrid_mode.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.15.3.0__add_r_models_for_tests_in_hybrid_mode.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.15.3.2__models_for_acceptance_tests.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.15.3.2__models_for_acceptance_tests.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.16.0.1__DemoSalesLeadScoreModel_Python.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.16.0.1__DemoSalesLeadScoreModel_Python.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.16.0.2__DemoCaseClassification_rus_Model_Python.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.16.0.2__DemoCaseClassification_rus_Model_Python.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.16.0.3__DemoCaseClassification_enu_Model_Python.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.16.0.3__DemoCaseClassification_enu_Model_Python.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.16.1.1__TrainData_CreatedOn_Index.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.16.1.1__TrainData_CreatedOn_Index.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.17.1.1__Add_text_similarity_models_for_cucumber_tests.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.17.1.1__Add_text_similarity_models_for_cucumber_tests.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.17.1.2__Add_models_for_api_tests_CF.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.17.1.2__Add_models_for_api_tests_CF.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.17.2.1__Create_Prediction_table.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.17.2.1__Create_Prediction_table.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.17.2.2__Add_Prediction_Statistics_Columns.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.17.2.2__Add_Prediction_Statistics_Columns.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.17.2.3__DemoCF_Contact_Account_ru_enu_Model_Python.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.17.2.3__DemoCF_Contact_Account_ru_enu_Model_Python.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V7.18.1.1__Add_recomendation_model_for_cucumber_tests.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V7.18.1.1__Add_recomendation_model_for_cucumber_tests.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V8.0.1.8__cloud_process_element_sequence_model_new.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V8.0.1.8__cloud_process_element_sequence_model_new.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V8.0.1.9__oauth_userId_userType.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V8.0.1.9__oauth_userId_userType.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V8.0.10.1__Add_models_conversion_scoring_contact_and_account.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V8.0.10.1__Add_models_conversion_scoring_contact_and_account.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V8.0.3.1__ML_limits.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V8.0.3.1__ML_limits.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V8.0.3.2__cloud_process_element_sequence_model_subseq.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V8.0.3.2__cloud_process_element_sequence_model_subseq.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V8.0.3.3__oauth_userType_default_value.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V8.0.3.3__oauth_userType_default_value.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V8.0.9.1__ModelInstance_CreatedOn_Index.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V8.0.9.1__ModelInstance_CreatedOn_Index.sql] ERROR 1049 (42000): Unknown database 'ml'
+[V8.1.0.1__Increase_UserId_Size.sql] mysql: [Warning] Using a password on the command line interface can be insecure.
+[V8.1.0.1__Increase_UserId_Size.sql] ERROR 1049 (42000): Unknown database 'ml'
