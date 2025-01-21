@@ -423,9 +423,9 @@ config:
         Remove_key   kubernetes
     
     [FILTER]
-      Name         record_modifier
-      Match        containers.*
-      Add          index_name dqa-${pod_name}-${time}-logs
+        Name         record_modifier
+        Match        containers.*
+        Add          index_name dqa-${pod_name}-${time}-logs
 
   ## https://docs.fluentbit.io/manual/pipeline/outputs
   outputs: |
@@ -440,14 +440,6 @@ config:
         Type         _doc
         tls          On
         tls.verify   Off
-
-    [OUTPUT]
-        Name es
-        Match host.*
-        Host elasticsearch-master
-        Logstash_Format On
-        Logstash_Prefix node
-        Retry_Limit False
 
   ## https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/upstream-servers
   ## This configuration is deprecated, please use `extraFiles` instead.
