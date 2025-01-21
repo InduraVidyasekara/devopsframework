@@ -396,12 +396,12 @@ config:
         Mem_Buf_Limit 5MB
         Skip_Long_Lines On
 
-    [INPUT]
-        Name         tail
-        Path         /var/log/container/*.log
-        Tag          containers.*
-        DB           /var/log/flb_k8s.db
-        Refresh_Interval 5
+#    [INPUT]
+#        Name         tail
+#        Path         /var/log/containers/*.log
+#        Tag          containers.*
+#        DB           /var/log/flb_k8s.db
+#        Refresh_Interval 5
 
   ## https://docs.fluentbit.io/manual/pipeline/filters
   filters: |
