@@ -75,7 +75,7 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: internal-nginx
   # kubernetes.io/tls-acme: "true"
-  # className: nginx
+  className: internal-nginx
   host: nonprod-zipkin.wingbank.com
   path: /
   tls: []
