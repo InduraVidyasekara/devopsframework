@@ -10,7 +10,7 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 
-replicaCount: 1
+replicaCount: 2
 
 image:
   repository: openzipkin/zipkin-slim
