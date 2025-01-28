@@ -1,0 +1,60 @@
+# yamllint --format github .github/workflows/release.yml
+---
+name: release
+
+# We release helm_charts into https://github.com/openzipkin/zipkin/blob/gh-pages/index.yaml
+
+on:
+  push:
+    tags: "release-[0-9]+.[0-9]+.[0-9]+**"
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Prevent use of implicit GitHub Actions read-only token GITHUB_TOKEN.
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Configure Git
+        run: | # Allocate commits to CI, not the owner of the deploy key
+          git config user.name "zipkinci"
+          git config user.email "zipkinci+zipkin-dev@googlegroups.com"
+
+      - name: Get latest zipkin version
+        uses: oprypin/find-latest-tag@v1
+        with:
+          repository: openzipkin/zipkin
+          releases-only: true
+          regex: '^\d+\.\d+\.\d+$'
+        id: appVersion
+
+      - name: Prepare release
+        env:
+          # GH_USER=<user that created GH_TOKEN>
+          GH_USER: ${{ secrets.GH_USER }}
+          # GH_TOKEN=<hex token value>
+          #   - makes release commits and tags
+          #   - needs repo:status, public_repo
+          #   - referenced in .settings.xml
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |  # GITHUB_REF will be refs/tags/release-MAJOR.MINOR.PATCH
+          build-bin/git/login_git &&
+          build-bin/helm/helm_prepare $(echo ${GITHUB_REF} | cut -d/ -f 3) ${{ steps.appVersion.outputs.tag }}
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Get current tag trigger
+        id: trigger-tag
+        run: echo "tag=$(echo ${GITHUB_REF} | cut -d/ -f 3)" >> $GITHUB_OUTPUT
+
+      - name: Removes trigger target
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          tag_name: ${{ steps.trigger-tag.outputs.tag }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}

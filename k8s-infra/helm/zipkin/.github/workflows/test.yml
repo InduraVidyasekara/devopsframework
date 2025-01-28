@@ -1,0 +1,72 @@
+# yamllint --format github .github/workflows/test.yml
+---
+name: test
+
+# We test the helm chart including an apply following the steps described in
+# https://github.com/helm/chart-testing-action
+
+# We don't test documentation-only commits.
+on:
+  push:
+    branches: master
+    paths-ignore:
+      - "**/*.md"
+  pull_request:
+    branches: master
+    paths-ignore:
+      - "**/*.md"
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'  # to see origin/master
+
+      - name: Configure Git
+        run: |  # not zipkinci as this is for testing
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.1
+
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Set up chart-testing
+        # See please https://github.com/helm/chart-testing-action/issues/140
+        uses: helm/chart-testing-action@v2.6.1
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed)
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run chart-testing (lint)
+        run: ct lint --config .github/ct.yml
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.10.0
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Setup helmfile
+        uses: mamezou-tech/setup-helmfile@v2.0.0
+
+      - name: Install prometheus
+        run: helmfile -f charts/zipkin/ci/helmfile.yaml sync
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Run chart-testing (install)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct install
