@@ -71,13 +71,12 @@ serviceMonitor:
   #    release: prometheus
 
 ingress:
-  enabled: false
+  enabled: true
   annotations:
-    {}
-    # kubernetes.io/ingress.class: nginx
+    kubernetes.io/ingress.class: external-nginx
   # kubernetes.io/tls-acme: "true"
   # className: nginx
-  host: chart-example.local
+  host: zipkin-dqa.wingbank.com
   path: /
   tls: []
   #  - secretName: chart-example-tls
