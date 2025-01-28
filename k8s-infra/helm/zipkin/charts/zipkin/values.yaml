@@ -73,7 +73,7 @@ serviceMonitor:
 ingress:
   enabled: true
   annotations:
-    kubernetes.io/ingress.class: external-nginx
+    kubernetes.io/ingress.class: internal-nginx
   # kubernetes.io/tls-acme: "true"
   # className: nginx
   host: nonprod-zipkin.wingbank.com
