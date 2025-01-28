@@ -76,7 +76,7 @@ ingress:
     kubernetes.io/ingress.class: external-nginx
   # kubernetes.io/tls-acme: "true"
   # className: nginx
-  host: zipkin-dqa.wingbank.com
+  host: nonprod-zipkin.wingbank.com
   path: /
   tls: []
   #  - secretName: chart-example-tls
