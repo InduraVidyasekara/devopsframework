@@ -16,7 +16,7 @@ image:
   repository: openzipkin/zipkin-slim
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "3-s390x"
+  tag: "3-arm64"
 
 # Zipkin start command
 command: ["start-zipkin"]
